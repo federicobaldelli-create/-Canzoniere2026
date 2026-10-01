@@ -25,17 +25,24 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Scompatta il progetto Android
+        shell: bash
+        run: |
+          unzip -o Canzoniere2026_Android.zip -d progetto
+
+          echo "Struttura del progetto:"
+          find progetto -maxdepth 4 -type f | sort
+
       - name: Trova progetto Android
         id: find_project
         shell: bash
         run: |
-          echo "Contenuto del repository:"
-          find . -maxdepth 5 -type f | sort
-
-          SETTINGS=$(find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit)
+          SETTINGS=$(find progetto -type f \
+            \( -name "settings.gradle" -o -name "settings.gradle.kts" \) \
+            -print -quit)
 
           if [ -z "$SETTINGS" ]; then
-            echo "ERRORE: settings.gradle non trovato."
+            echo "ERRORE: settings.gradle non trovato dopo l'estrazione."
             exit 1
           fi
 
