@@ -26,21 +26,37 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Trova progetto Android
-        id: android_project
+        id: find_project
         shell: bash
         run: |
-          PROJECT_DIR=$(dirname "$(find . -name settings.gradle -type f -print -quit)")
-          if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ]; then
-            PROJECT_DIR="."
+          echo "Contenuto del repository:"
+          find . -maxdepth 5 -type f | sort
+
+          SETTINGS=$(find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit)
+
+          if [ -z "$SETTINGS" ]; then
+            echo "ERRORE: settings.gradle non trovato."
+            exit 1
           fi
-          echo "PROJECT_DIR=$PROJECT_DIR"
+
+          PROJECT_DIR=$(dirname "$SETTINGS")
+
+          echo "Progetto Android trovato in:"
+          echo "$PROJECT_DIR"
+
           echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
 
       - name: Compila APK
         shell: bash
         run: |
-          cd "${{ steps.android_project.outputs.project_dir }}"
-          gradle :app:assembleDebug --no-daemon
+          PROJECT_DIR="${{ steps.find_project.outputs.project_dir }}"
+
+          echo "Compilazione da:"
+          echo "$PROJECT_DIR"
+
+          ls -la "$PROJECT_DIR"
+
+          gradle -p "$PROJECT_DIR" :app:assembleDebug --no-daemon
 
       - name: Salva APK
         uses: actions/upload-artifact@v4
